@@ -133,7 +133,7 @@ const GALLERY_DATA = [
 // Testimonials Dataset
 const TESTIMONIALS_DATA = [
   {
-    name: "Dr. Chioma Adebayo",
+    name: "Dr. Techvilla latisha",
     role: "Food Blogger & Lifestyle Critic",
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
     rating: 5,
