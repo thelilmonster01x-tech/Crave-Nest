@@ -1964,6 +1964,261 @@ textarea.form-control {
   box-shadow: 0 0 30px rgba(0,0,0,0.8);
 }
 
+/* ==========================================================================
+   Recent Orders Section Styles
+   ========================================================================== */
+.section-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.orders-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.order-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+.order-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: rgba(30, 77, 43, 0.25);
+  transform: translateY(-2px);
+}
+
+.order-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px dashed var(--border-color);
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.order-id-tag {
+  font-family: var(--font-poppins);
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--primary-forest);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.order-date {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.order-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.order-status-badge.delivered {
+  background: rgba(107, 175, 75, 0.15);
+  color: var(--accent-leaf);
+}
+
+.order-status-badge.preparing {
+  background: rgba(255, 140, 0, 0.15);
+  color: var(--primary-orange);
+}
+
+.order-status-badge.whatsapp {
+  background: rgba(37, 211, 102, 0.15);
+  color: #25D366;
+}
+
+.order-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.order-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--bg-main);
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--radius-md);
+}
+
+.order-item-info {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.order-item-img {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.order-item-name {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+  margin-bottom: 0.15rem;
+}
+
+.order-item-qty {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.order-item-price {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--primary-orange);
+}
+
+.order-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.order-total-box {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.order-total-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.order-total-val {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--primary-forest);
+  font-family: var(--font-poppins);
+}
+
+.order-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.btn-sm {
+  padding: 0.45rem 0.95rem;
+  font-size: 0.82rem;
+  border-radius: var(--radius-full);
+}
+
+.empty-orders-box {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: var(--bg-surface);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-xl);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.empty-orders-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(30, 77, 43, 0.1);
+  color: var(--primary-forest);
+  display: grid;
+  place-items: center;
+  font-size: 2.2rem;
+  margin: 0 auto 1.5rem auto;
+}
+
+.empty-orders-box h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.6rem;
+  color: var(--text-primary);
+}
+
+.empty-orders-box p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  max-width: 440px;
+  margin: 0 auto 1.5rem auto;
+  line-height: 1.6;
+}
+
+/* Order Receipt Modal Styling */
+.receipt-header {
+  text-align: center;
+  padding-bottom: 1.2rem;
+  margin-bottom: 1.2rem;
+  border-bottom: 2px dashed var(--border-color);
+}
+
+.receipt-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--primary-forest);
+  margin-bottom: 0.25rem;
+}
+
+.receipt-status {
+  display: inline-block;
+  padding: 0.25rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-top: 0.5rem;
+}
+
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.receipt-row.bold {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--primary-forest);
+  border-top: 1px solid var(--border-color);
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+}
+
 /* Responsive Breakpoints */
 @media (max-width: 1024px) {
   .hero-grid, .about-grid, .contact-grid {

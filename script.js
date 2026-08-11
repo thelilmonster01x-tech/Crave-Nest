@@ -161,6 +161,7 @@ const TESTIMONIALS_DATA = [
 let state = {
   cart: JSON.parse(localStorage.getItem('cravenest_cart')) || [],
   favorites: JSON.parse(localStorage.getItem('cravenest_favorites')) || [],
+  orders: JSON.parse(localStorage.getItem('cravenest_orders')) || [],
   theme: localStorage.getItem('cravenest_theme') || 'light',
   activeFilter: 'all',
   searchQuery: '',
@@ -184,7 +185,9 @@ function saveFavorites() {
 // --------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
+  initOrders();
   renderMeals();
+  renderOrdersSection();
   renderGallery();
   renderTestimonials();
   updateCartUI();
@@ -569,8 +572,55 @@ function processCheckout(event) {
     checkoutBtn.innerText = "Processing Order...";
   }
 
+  const form = event.target;
+  const addressInput = form.querySelector('input[type="text"]');
+  const phoneInput = form.querySelector('input[type="tel"]');
+  const paymentSelect = form.querySelector('select');
+
+  const address = addressInput && addressInput.value ? addressInput.value : 'Standard Delivery Address';
+  const phone = phoneInput && phoneInput.value ? phoneInput.value : '';
+  const paymentMethod = paymentSelect ? paymentSelect.options[paymentSelect.selectedIndex].text : 'Debit / Credit Card';
+
+  let subtotal = 0;
+  const orderItems = state.cart.map(item => {
+    const meal = MEALS_DATA.find(m => m.id === item.id);
+    const price = meal ? meal.price : 0;
+    subtotal += price * item.quantity;
+    return {
+      id: item.id,
+      name: meal ? meal.name : 'Crave Meal',
+      price: price,
+      quantity: item.quantity,
+      image: meal ? meal.image : ''
+    };
+  });
+
+  const discount = subtotal * state.appliedDiscount;
+  const deliveryFee = 1000;
+  const grandTotal = Math.max(0, subtotal - discount + deliveryFee);
+
+  const newOrder = {
+    id: "CN-" + Math.floor(100000 + Math.random() * 900000),
+    date: new Date().toISOString(),
+    status: "Confirmed & Preparing",
+    items: orderItems,
+    subtotal: subtotal,
+    discount: discount,
+    deliveryFee: deliveryFee,
+    grandTotal: grandTotal,
+    customerName: phone ? `Tel: ${phone}` : "Valued Customer",
+    deliveryAddress: address,
+    paymentMethod: paymentMethod
+  };
+
   setTimeout(() => {
+    state.orders.unshift(newOrder);
+    saveOrders();
+    renderOrdersSection();
+
     state.cart = [];
+    state.appliedDiscount = 0;
+    state.promoCode = '';
     saveCart();
     closeAllModals();
     showToast('🎉 Order Placed Successfully! Estimated Delivery: 25 Mins', 'orange');
@@ -578,7 +628,12 @@ function processCheckout(event) {
       checkoutBtn.disabled = false;
       checkoutBtn.innerText = "Place Order";
     }
-  }, 1500);
+
+    const ordersSection = document.getElementById('orders');
+    if (ordersSection) {
+      ordersSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, 1200);
 }
 
 function sendCartToWhatsApp(event) {
@@ -591,32 +646,292 @@ function sendCartToWhatsApp(event) {
   let text = "👋 *Hello Crave Nest!* I would like to place an order:\n\n";
   let subtotal = 0;
 
-  state.cart.forEach((item, index) => {
+  const orderItems = state.cart.map((item, index) => {
     const meal = MEALS_DATA.find(m => m.id === item.id);
-    if (meal) {
-      const itemTotal = meal.price * item.quantity;
-      subtotal += itemTotal;
-      text += `${index + 1}. *${meal.name}* (x${item.quantity}) - ₦${itemTotal.toLocaleString()}\n`;
-    }
+    const price = meal ? meal.price : 0;
+    subtotal += price * item.quantity;
+    text += `${index + 1}. *${meal ? meal.name : 'Meal'}* (x${item.quantity}) - ₦${(price * item.quantity).toLocaleString()}\n`;
+    return {
+      id: item.id,
+      name: meal ? meal.name : 'Crave Meal',
+      price: price,
+      quantity: item.quantity,
+      image: meal ? meal.image : ''
+    };
   });
 
   const discount = subtotal * state.appliedDiscount;
-  const delivery = 1000;
-  const grandTotal = Math.max(0, subtotal - discount + delivery);
+  const deliveryFee = 1000;
+  const grandTotal = Math.max(0, subtotal - discount + deliveryFee);
 
   text += `\n💵 *Subtotal:* ₦${subtotal.toLocaleString()}`;
   if (discount > 0) {
     text += `\n🏷️ *Discount (${state.promoCode}):* -₦${discount.toLocaleString()}`;
   }
-  text += `\n🚚 *Express Delivery:* ₦${delivery.toLocaleString()}`;
+  text += `\n🚚 *Express Delivery:* ₦${deliveryFee.toLocaleString()}`;
   text += `\n⭐ *Grand Total:* ₦${grandTotal.toLocaleString()}`;
   text += `\n\n📍 Please confirm delivery availability and payment details!`;
+
+  // Save order in history
+  const newOrder = {
+    id: "CN-WA" + Math.floor(10000 + Math.random() * 90000),
+    date: new Date().toISOString(),
+    status: "Sent via WhatsApp",
+    items: orderItems,
+    subtotal: subtotal,
+    discount: discount,
+    deliveryFee: deliveryFee,
+    grandTotal: grandTotal,
+    customerName: "WhatsApp Order",
+    deliveryAddress: "Direct WhatsApp Delivery (+234 808 297 7161)",
+    paymentMethod: "💬 WhatsApp Confirmation"
+  };
+
+  state.orders.unshift(newOrder);
+  saveOrders();
+  renderOrdersSection();
 
   const phone = "2348082977161";
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
   
   if (event) event.preventDefault();
   window.open(url, '_blank');
+}
+
+// --------------------------------------------------------------------------
+// 7.5. Order History Logic
+// --------------------------------------------------------------------------
+function initOrders() {
+  if (!localStorage.getItem('cravenest_orders')) {
+    const demoOrder = {
+      id: "CN-782910",
+      date: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
+      status: "Delivered",
+      items: [
+        {
+          id: "meal-1",
+          name: "Smokey Jollof Fiesta Bowl",
+          price: 4500,
+          quantity: 2,
+          image: "/src/assets/images/hero_food_bowl_1786437959509.jpg"
+        },
+        {
+          id: "meal-8",
+          name: "Hibiscus Zobo Mojito",
+          price: 1800,
+          quantity: 2,
+          image: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=800&q=80"
+        }
+      ],
+      subtotal: 12600,
+      discount: 3780,
+      deliveryFee: 1000,
+      grandTotal: 9820,
+      customerName: "Valued Foodie",
+      deliveryAddress: "Victoria Island, Lagos",
+      paymentMethod: "💳 Card Payment"
+    };
+    state.orders = [demoOrder];
+    saveOrders();
+  }
+}
+
+function saveOrders() {
+  localStorage.setItem('cravenest_orders', JSON.stringify(state.orders));
+}
+
+function renderOrdersSection() {
+  const container = document.getElementById('ordersListContainer');
+  const clearBtnWrapper = document.getElementById('clearOrdersBtnWrapper');
+  if (!container) return;
+
+  if (!state.orders || state.orders.length === 0) {
+    if (clearBtnWrapper) clearBtnWrapper.style.display = 'none';
+    container.innerHTML = `
+      <div class="empty-orders-box">
+        <div class="empty-orders-icon"><i class="ri-history-line"></i></div>
+        <h3>No Order History Yet</h3>
+        <p>When you place an order via our online checkout or WhatsApp, your order details and receipts will be saved here for easy 1-click re-ordering!</p>
+        <a href="#menu" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+          <i class="ri-restaurant-2-line"></i> Explore Our Menu
+        </a>
+      </div>
+    `;
+    return;
+  }
+
+  if (clearBtnWrapper) clearBtnWrapper.style.display = 'block';
+
+  container.innerHTML = state.orders.map(order => {
+    const formattedDate = formatOrderDate(order.date);
+    let badgeClass = 'delivered';
+    let badgeIcon = 'ri-checkbox-circle-fill';
+    
+    if (order.status.toLowerCase().includes('preparing') || order.status.toLowerCase().includes('confirmed')) {
+      badgeClass = 'preparing';
+      badgeIcon = 'ri-time-line';
+    } else if (order.status.toLowerCase().includes('whatsapp')) {
+      badgeClass = 'whatsapp';
+      badgeIcon = 'ri-whatsapp-line';
+    }
+
+    const itemsHtml = order.items.map(item => `
+      <div class="order-item-row">
+        <div class="order-item-info">
+          ${item.image ? `<img src="${item.image}" alt="${item.name}" class="order-item-img" />` : ''}
+          <div>
+            <div class="order-item-name">${item.name}</div>
+            <div class="order-item-qty">Quantity: <strong>x${item.quantity}</strong></div>
+          </div>
+        </div>
+        <div class="order-item-price">₦${(item.price * item.quantity).toLocaleString()}</div>
+      </div>
+    `).join('');
+
+    return `
+      <div class="order-card" id="order-card-${order.id}">
+        <div class="order-header">
+          <div>
+            <div class="order-id-tag">
+              <i class="ri-restaurant-line"></i> Order #${order.id}
+            </div>
+            <div class="order-date"><i class="ri-calendar-line"></i> ${formattedDate}</div>
+          </div>
+          <span class="order-status-badge ${badgeClass}">
+            <i class="${badgeIcon}"></i> ${order.status}
+          </span>
+        </div>
+
+        <div class="order-items-list">
+          ${itemsHtml}
+        </div>
+
+        <div class="order-footer">
+          <div class="order-total-box">
+            <span class="order-total-label">Total Amount:</span>
+            <span class="order-total-val">₦${order.grandTotal.toLocaleString()}</span>
+          </div>
+
+          <div class="order-actions">
+            <button class="btn btn-outline btn-sm" onclick="openOrderDetailModal('${order.id}')">
+              <i class="ri-file-list-3-line"></i> Receipt Details
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="reorderItems('${order.id}')">
+              <i class="ri-refresh-line"></i> Re-order All
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function formatOrderDate(isoString) {
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return isoString;
+    return d.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (e) {
+    return isoString;
+  }
+}
+
+function reorderItems(orderId) {
+  const order = state.orders.find(o => o.id === orderId);
+  if (!order || !order.items || order.items.length === 0) return;
+
+  order.items.forEach(item => {
+    addToCart(item.id, item.quantity);
+  });
+
+  showToast(`Added ${order.items.length} item(s) from Order #${order.id} to cart!`, 'orange');
+  openCartDrawer();
+}
+
+function clearOrderHistory() {
+  if (confirm("Are you sure you want to clear your order history?")) {
+    state.orders = [];
+    saveOrders();
+    renderOrdersSection();
+    showToast('Order history cleared.', 'info');
+  }
+}
+
+function openOrderDetailModal(orderId) {
+  const order = state.orders.find(o => o.id === orderId);
+  if (!order) return;
+
+  const content = document.getElementById('orderDetailContent');
+  const modal = document.getElementById('orderDetailModal');
+  if (!content || !modal) return;
+
+  const formattedDate = formatOrderDate(order.date);
+
+  const itemsHtml = order.items.map(i => `
+    <div class="receipt-row">
+      <span>${i.name} (x${i.quantity})</span>
+      <span>₦${(i.price * i.quantity).toLocaleString()}</span>
+    </div>
+  `).join('');
+
+  content.innerHTML = `
+    <div class="receipt-container">
+      <div class="receipt-header">
+        <h3 class="receipt-title">Crave Nest Order Receipt</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">Order ID: <strong>#${order.id}</strong> • ${formattedDate}</p>
+        <span class="receipt-status" style="background: rgba(30, 77, 43, 0.1); color: var(--primary-forest);">
+          Status: ${order.status}
+        </span>
+      </div>
+
+      <div style="margin-bottom: 1.2rem;">
+        <h5 style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.4rem;">Delivery Address:</h5>
+        <p style="font-size: 0.9rem; font-weight: 600; color: var(--text-primary); margin: 0;">${order.deliveryAddress || 'Standard Delivery'}</p>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">Payment Method: ${order.paymentMethod || 'Card Payment'}</p>
+      </div>
+
+      <div style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.2rem;">
+        <h5 style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.6rem;">Itemized Summary:</h5>
+        ${itemsHtml}
+        <div class="receipt-row" style="margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px dashed var(--border-color); color: var(--text-secondary);">
+          <span>Subtotal:</span>
+          <span>₦${order.subtotal.toLocaleString()}</span>
+        </div>
+        ${order.discount > 0 ? `
+          <div class="receipt-row" style="color: var(--primary-orange);">
+            <span>Discount:</span>
+            <span>-₦${order.discount.toLocaleString()}</span>
+          </div>
+        ` : ''}
+        <div class="receipt-row" style="color: var(--text-secondary);">
+          <span>Express Delivery Fee:</span>
+          <span>₦${order.deliveryFee.toLocaleString()}</span>
+        </div>
+        <div class="receipt-row bold">
+          <span>Total Paid:</span>
+          <span>₦${order.grandTotal.toLocaleString()}</span>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+        <button class="btn btn-outline" style="flex: 1;" onclick="closeAllModals()">
+          Close
+        </button>
+        <button class="btn btn-primary" style="flex: 1;" onclick="reorderItems('${order.id}'); closeAllModals();">
+          <i class="ri-refresh-line"></i> Re-order Items
+        </button>
+      </div>
+    </div>
+  `;
+
+  modal.classList.add('active');
 }
 
 // --------------------------------------------------------------------------

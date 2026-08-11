@@ -56,8 +56,9 @@
         <a href="#home" class="nav-link active">Home</a>
         <a href="#categories" class="nav-link">Categories</a>
         <a href="#menu" class="nav-link">Menu</a>
-        <a href="#about" class="nav-link">About Us</a>
         <a href="#specials" class="nav-link">Specials</a>
+        <a href="#orders" class="nav-link">Recent Orders</a>
+        <a href="#about" class="nav-link">About Us</a>
         <a href="#reviews" class="nav-link">Reviews</a>
         <a href="#contact" class="nav-link">Contact</a>
       </nav>
@@ -324,6 +325,30 @@
               <img src="/src/assets/images/hero_food_bowl_1786437959509.jpg" alt="Special Food Festival Offer" class="offer-img" />
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         Recent Orders Section
+         ========================================================================== -->
+    <section class="section-padding" id="orders">
+      <div class="container">
+        <div class="section-header-flex">
+          <div>
+            <span class="section-subtag">Order History</span>
+            <h2 class="section-title">Your Recent Orders</h2>
+            <p class="section-desc">Track your previous meals, view receipt details, or re-order your favorites in 1-click.</p>
+          </div>
+          <div id="clearOrdersBtnWrapper" style="display: none;">
+            <button class="btn btn-outline btn-sm" onclick="clearOrderHistory()" style="border-color: rgba(230, 57, 70, 0.4); color: #E63946;">
+              <i class="ri-delete-bin-line"></i> Clear History
+            </button>
+          </div>
+        </div>
+
+        <div id="ordersListContainer" class="orders-container">
+          <!-- Recent Orders injected dynamically by script.js -->
         </div>
       </div>
     </section>
@@ -681,6 +706,16 @@
           Place Order
         </button>
       </form>
+    </div>
+  </div>
+
+  <!-- Order Receipt / Details Modal -->
+  <div class="modal-backdrop" id="orderDetailModal" onclick="if(event.target===this) closeAllModals()">
+    <div class="modal-container" style="max-width: 550px;">
+      <button class="modal-close-btn" onclick="closeAllModals()"><i class="ri-close-line"></i></button>
+      <div id="orderDetailContent">
+        <!-- Receipt details injected by script.js -->
+      </div>
     </div>
   </div>
 
