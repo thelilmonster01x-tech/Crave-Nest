@@ -1,0 +1,6 @@
+{
+  "name": "Crave Nest",
+  "description": "Premium single-page food brand website for Crave Nest - Good Food. Real Cravings. Better Moments.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
